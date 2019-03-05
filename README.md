@@ -12,19 +12,16 @@ npm install ngx-mauth-oidc --save-dev
 
 ```TypeScript
 import { HttpClientModule } from '@angular/common/http';
-import { OAuthModule } from 'angular-oauth2-oidc';
-// etc.
+import { NgxMAuthOidcModule } from 'ngx-mauth-oidc';
 
 @NgModule({
   imports: [ 
-    // etc.
     HttpClientModule,
-    OAuthModule.forRoot()
+    NgxMAuthOidcModule.forRoot()
   ],
   declarations: [
     AppComponent,
-    HomeComponent,
-    // etc.
+    HomeComponent
   ],
   bootstrap: [
     AppComponent 
