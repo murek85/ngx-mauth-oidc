@@ -4,7 +4,7 @@ import { NgModule } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
 
 import { AppComponent } from './app.component';
-import { OidcModule } from 'ngx-mauth-oidc';
+import { NgxMAuthOidcModule } from 'ngx-mauth-oidc';
 
 @NgModule({
   declarations: [
@@ -14,7 +14,7 @@ import { OidcModule } from 'ngx-mauth-oidc';
     CommonModule,
     BrowserModule,
     HttpClientModule,
-    OidcModule.forRoot()
+    NgxMAuthOidcModule.forRoot()
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { OidcConfig, OidcService } from 'ngx-mauth-oidc';
+import { NgxMAuthOidcConfig, NgxMAuthOidcService } from 'ngx-mauth-oidc';
 
 const apiUrl = 'https://localhost:5001';
 const appUrl = 'http://localhost:4200';
 
-export function oidcConfig(url: string): OidcConfig {
+export function oidcConfig(url: string): NgxMAuthOidcConfig {
     return {
         origin: appUrl,
         issuer: apiUrl + '/',
@@ -24,12 +24,12 @@ export function oidcConfig(url: string): OidcConfig {
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  constructor(public oidcService: OidcService) { }
+  constructor(public oidcService: NgxMAuthOidcService) { }
 
   public ngOnInit(): void {
     this.oidcService.configure(oidcConfig(apiUrl));
     this.oidcService.setStorage(sessionStorage);
-    this.oidcService.loadDocumentAndTryLogin()
+    this.oidcService.loadDocumentAndTryLogin({ customHashFragment: '?' })
       .then(d => {
         console.log('loadDocumentAndTryLogin', d);
       });
@@ -68,7 +68,7 @@ export class AppComponent implements OnInit {
   }
 
   public authorizationCode(): void {
-    this.oidcService.initAuthorizationCode({ provider: 'Google' });
+    this.oidcService.initAuthorizationCode({ provider: 'Facebook' });
   }
 
   get isLoggedIn(): boolean {

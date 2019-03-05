@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --project sample -o",
+    "start": "ng serve --project sample -o --port 4300",
     "build": "ng build --prod --project ngx-mauth-oidc",
     "test": "ng test",
     "lint": "ng lint",
