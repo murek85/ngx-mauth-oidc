@@ -1,0 +1,20 @@
+<!--The content below is only a placeholder and can be replaced.-->
+<div style="text-align:left">
+  <button type="button" (click)="passwordFlow()">
+    <span>PasswordFlow</span>
+  </button>
+  <button type="button" (click)="authorizationCode()">
+    <span>AuthorizationCode</span>
+  </button>
+
+  <div style="text-align:left; word-wrap:inherit; display:grid;">
+    <p>User: {{ user | json }}</p>
+    <p>IsLogged: {{ isLoggedIn | json }}</p>
+    <p>Access token: {{ accessToken | json }}</p>
+    <p>Access token expiration: {{ accessTokenExpiration | json }}</p>
+  </div>
+</div>
+
+<div *ngIf="isLoggedIn" style="text-align:left">
+  <button (click)="logout()">Logout</button>
+</div>
