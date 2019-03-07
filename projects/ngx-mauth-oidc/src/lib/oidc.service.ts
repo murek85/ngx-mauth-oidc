@@ -3,9 +3,11 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 // import { Subject, Observable, Subscription, of, race } from 'rxjs';
 // import { filter, take, delay, first, tap, map } from 'rxjs/operators';
 
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
-import { Subscription } from 'rxjs/Subscription';
+// import { Observable } from 'rxjs/Observable';
+// import { Subject } from 'rxjs/Subject';
+// import { Subscription } from 'rxjs/Subscription';
+
+import { Observable, Subject, Subscription } from 'rxjs/Rx';
 
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/delay';

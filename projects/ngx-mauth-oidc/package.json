@@ -1,8 +1,8 @@
 {
   "name": "ngx-mauth-oidc",
-  "version": "1.0.0",
+  "version": "0.0.2",
   "peerDependencies": {
-    "@angular/common": ">=4.0.0 < 8.0.0",
-    "@angular/core": ">=4.0.0 < 8.0.0"
+    "@angular/common": ">=5.0.0 < 8.0.0",
+    "@angular/core": ">=5.0.0 < 8.0.0"
   }
 }
