@@ -14,6 +14,7 @@ export class NgxMAuthOidcConfig {
     public requestAccessToken? = true;
     public oidc? = true;
     public clearHashAfterLogin? = true;
+    public clearSearchAfterLogin? = false;
     public isAuthorizationCodeInPopup? = false;
     public responseType? = '';
     public nonceStateSeparator? = ';';

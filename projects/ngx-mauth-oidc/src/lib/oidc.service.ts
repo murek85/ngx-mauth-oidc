@@ -678,6 +678,9 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
 
         this.silentRefreshSubject = null;
 
+        this.clearAccessTokenTimer();
+        this.clearIdTokenTimer();
+
         this.eventsSubject.next(
             new NgxMAuthOidcInfoEvent('logout')
         );
@@ -719,7 +722,7 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
         location.href = logoutUrl;
     }
 
-    private createLoginUrl(
+    public createLoginUrl(
         params = { }, noPrompt = false): Promise<string> {
 
         return new Promise((resolve, reject) => {
@@ -801,9 +804,9 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
                     }
 
                     this.storeAccessTokenResponse(token.access_token, token.refresh_token, token.expires_in, token.scope);
-                    // if (this.clearHashAfterLogin) {
-                    //     location.href = '';
-                    // }
+                    if (this.clearSearchAfterLogin) {
+                        location.href = '';
+                    }
                     this.eventsSubject.next(
                         new NgxMAuthOidcSuccessEvent('token_received')
                     );
