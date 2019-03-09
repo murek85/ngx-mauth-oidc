@@ -63,9 +63,10 @@ export class NgxMAuthOidcHelperService {
         return `location=no,toolbar=no,width=${width},height=${height},top=${top},left=${left}`;
     }
 
-    public getSearchFragmentParams(): object {
+    public getSearchFragmentParams(
+        customSearchFragment?: string): object {
 
-        let search = location.search;
+        let search = customSearchFragment || location.search;
         search = decodeURIComponent(search);
         if (search.indexOf('?') !== 0) {
             return {};
@@ -121,9 +122,10 @@ export class NgxMAuthOidcHelperService {
         return data;
     }
 
-    public isSearchFragmentParams(): boolean {
+    public isSearchFragmentParams(
+        customSearchFragment?: string): boolean {
 
-        let search = location.search;
+        let search = customSearchFragment || location.search;
         search = decodeURIComponent(search);
         if (search.indexOf('?') !== 0) {
             return false;

@@ -4,6 +4,7 @@ export class NgxMAuthOidcLoginOptions {
     onLoginError?: (params: object) => void;
 
     customHashFragment?: string;
+    customSearchFragment?: string;
     disableOAuth2StateCheck?: boolean;
     preventClearHashAfterLogin? = false;
 }

@@ -367,8 +367,12 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
             } else {
                 parts = this.helperService.getHashFragmentParams();
             }
-        } else if (this.helperService.isSearchFragmentParams()) {
-            parts = this.helperService.getSearchFragmentParams();
+        } else if (this.helperService.isSearchFragmentParams(options.customSearchFragment)) {
+            if (options.customSearchFragment) {
+                parts = this.helperService.getSearchFragmentParams(options.customSearchFragment);
+            } else {
+                parts = this.helperService.getSearchFragmentParams();
+            }
         }
         console.log('parts', parts);
 
@@ -778,7 +782,7 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
         });
     }
 
-    private getTokenFromCode(
+    public getTokenFromCode(
         code: string): Promise<object> {
 
         return new Promise((resolve, reject) => {
