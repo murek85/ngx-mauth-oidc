@@ -5,6 +5,7 @@ export class NgxMAuthOidcConfig {
     public redirectUri? = '';
     public postLogoutRedirectUri? = '';
     public loginUrl? = '';
+    public loginDomainUrl? = '';
     public logoutUrl? = '';
     public scope? = 'openid profile';
     public issuer? = '';
@@ -29,6 +30,7 @@ export class NgxMAuthOidcConfig {
     public silentRefreshIFrameName? = 'murek-oidc-silent-refresh-iframe';
     public silentRefreshTimeout?: number = 1000 * 20;
     public options?: any = null;
+    public requireHttps?: boolean | 'remoteOnly' = 'remoteOnly';
 
     constructor(json?: Partial<NgxMAuthOidcConfig>) {
         if (json) {

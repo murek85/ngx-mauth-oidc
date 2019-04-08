@@ -91,7 +91,6 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
     }
 
     private setupRefreshTimer(): void {
-
         if (typeof window === 'undefined') {
             return;
         }
@@ -110,7 +109,6 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
     }
 
     private setupExpirationTimers(): void {
-
         const idTokenExp = this.getIdTokenExpiration() || Number.MAX_VALUE;
         const accessTokenExp = this.getAccessTokenExpiration() || Number.MAX_VALUE;
         const useAccessTokenExp = accessTokenExp <= idTokenExp;
@@ -125,7 +123,6 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
     }
 
     private setupAccessTokenTimer(): void {
-
         const expiration = this.getAccessTokenExpiration();
         const storedAt = this.getAccessTokenStoredAt();
         const timeout = this.calcTimeout(storedAt, expiration);
@@ -148,23 +145,17 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
         // });
     }
 
-    private setupIdTokenTimer(): void {
-
-    }
+    private setupIdTokenTimer(): void { }
 
     private clearAccessTokenTimer(): void {
-
         if (this.accessTokenTimeoutSubscription) {
             this.accessTokenTimeoutSubscription.unsubscribe();
         }
     }
 
-    private clearIdTokenTimer(): void {
-
-    }
+    private clearIdTokenTimer(): void { }
 
     private calcTimeout(storedAt: number, expiration: number): number {
-
         const tokenLifetime = expiration - storedAt;
         const refreshTime = storedAt + (tokenLifetime * this.timeoutFactor);
         const timeLeft = Math.max(0, refreshTime - Date.now());
@@ -172,17 +163,14 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
     }
 
     public setStorage(storage: NgxMAuthOidcStorage): void {
-
         this.storage = storage;
     }
 
     private restartRefreshTimerIfStillLoggedIn(): void {
-
         this.setupExpirationTimers();
     }
 
     public getIdentityClaims(): object {
-
         const claims = this.storage.getItem('id_token_claims_obj');
         if (!claims) {
             return null;
@@ -191,22 +179,18 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
     }
 
     public getIdToken(): string {
-
         return this.storage ? this.storage.getItem('id_token') : null;
     }
 
     public getAccessToken(): string {
-
         return this.storage.getItem('access_token');
     }
 
     public getRefreshToken(): string {
-
         return this.storage.getItem('refresh_token');
     }
 
     public getAccessTokenExpiration(): number {
-
         if (!this.storage.getItem('expires_at')) {
             return null;
         }
@@ -214,7 +198,6 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
     }
 
     public getIdTokenExpiration(): number {
-
         if (!this.storage.getItem('id_token_expires_at')) {
             return null;
         }
@@ -223,17 +206,14 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
     }
 
     private getAccessTokenStoredAt(): number {
-
         return parseInt(this.storage.getItem('access_token_stored_at'), 10);
     }
 
     private getIdTokenStoredAt(): number {
-
         return parseInt(this.storage.getItem('id_token_stored_at'), 10);
     }
 
     public hasValidAccessToken(): boolean {
-
         if (this.getAccessToken()) {
             const expiresAt = this.storage.getItem('expires_at');
             const now = new Date();
@@ -248,7 +228,6 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
     }
 
     public hasValidIdToken(): boolean {
-
         if (this.getIdToken()) {
             const expiresAt = this.storage.getItem('id_token_expires_at');
             const now = new Date();
@@ -263,13 +242,11 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
     }
 
     public authorizationHeader(): string {
-
         const accessToken = this.getAccessToken();
         return 'Bearer ' + accessToken;
     }
 
     private loadJwks(): Promise<object> {
-
         return new Promise<object>((resolve, reject) => {
             if (this.jwksUri) {
                 this.http.get(this.jwksUri).subscribe(
@@ -301,8 +278,21 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
                 fullUrl += '.well-known/openid-configuration';
             }
 
+            if (!this.validateUrlForHttps(fullUrl)) {
+                reject('issuer must use https, or config value for property requireHttps must allow http');
+                return;
+            }
+
             this.http.get<NgxMAuthOidcDocument>(fullUrl).subscribe(
                 document => {
+                    if (!this.validateDocument(document)) {
+                        this.eventsSubject.next(
+                            new NgxMAuthOidcErrorEvent('document_validation_error', null)
+                        );
+                        reject('document_validation_error');
+                        return;
+                    }
+
                     this.loginUrl = document.authorization_endpoint;
                     this.logoutUrl = document.end_session_endpoint || this.logoutUrl;
                     this.grantTypesSupported = document.grant_types_supported;
@@ -346,7 +336,6 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
     }
 
     public loadDocumentAndTryLogin(
-
         options: NgxMAuthOidcLoginOptions = null): Promise<boolean> {
 
         return this.loadDocument().then(document => {
@@ -355,7 +344,6 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
     }
 
     public tryLogin(
-
         options: NgxMAuthOidcLoginOptions = null): Promise<boolean> {
 
         options = options || {};
@@ -374,7 +362,6 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
                 parts = this.helperService.getSearchFragmentParams();
             }
         }
-        console.log('parts', parts);
 
         const state = parts['state'];
         let nonceInState = state;
@@ -444,6 +431,29 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
             });
     }
 
+    // public initWindowsDomain(): Promise<object> {
+    //     return new Promise((resolve, reject) => {
+    //         this.http.get(`${this.loginDomainUrl}/api/account/login`, { withCredentials: true }).subscribe(
+    //             (domain: any) => {
+    //                 this.createLoginUrl({
+    //                         username: domain.samAccountName,
+    //                         password: domain.password,
+    //                         domainname: domain.domainName
+    //                     })
+    //                     .then(url => {
+    //                         location.href = url;
+    //                     })
+    //                     .catch(error => {
+    //                         reject(error);
+    //                     });
+    //             },
+    //             error => {
+    //                 reject(error);
+    //             }
+    //         );
+    //     });
+    // }
+
     public initAuthorizationCode(
         params: string | object = '') {
 
@@ -488,7 +498,6 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
      * @param params
      */
     public initImplicitFlow(
-
         params: string | object = '') {
 
         this.createLoginUrl(params)
@@ -501,7 +510,6 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
     }
 
     public loadUserProfile(): Promise<object> {
-
         return new Promise((resolve, reject) => {
             const headers = new HttpHeaders().set(
                 'Authorization', 'Bearer ' + this.getAccessToken()
@@ -527,11 +535,64 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
         });
     }
 
-    public fetchTokenUsingPasswordFlow(
-
+    public fetchTokenUsingDomainFlow(
         userName: string,
         password: string,
         headers: HttpHeaders = new HttpHeaders()): Promise<object> {
+
+        if (!this.validateUrlForHttps(this.tokenEndpoint)) {
+            throw new Error(
+                'tokenEndpoint must use http, or config value for property requireHttps must allow http'
+            );
+        }
+
+        return new Promise((resolve, reject) => {
+
+            let params = new HttpParams({ encoder: new WebHttpUrlEncodingCodec() })
+                .set('grant_type', 'password')
+                .set('scope', this.scope)
+                .set('username', userName)
+                .set('password', password)
+                .set('provider', 'Windows');
+
+            params = params.set('client_id', this.clientId);
+
+            if (this.dummyClientSecret) {
+                params = params.set('client_secret', this.dummyClientSecret);
+            }
+
+            headers = headers.set(
+                'Content-Type', 'application/x-www-form-urlencoded'
+            );
+
+            this.http.post<NgxMAuthOidcTokenResponse>(this.tokenEndpoint, params, { headers }).subscribe(
+                token => {
+                    this.storeAccessTokenResponse(token.access_token, token.refresh_token, token.expires_in, token.scope);
+                    this.eventsSubject.next(
+                        new NgxMAuthOidcSuccessEvent('token_received')
+                    );
+                    resolve(token);
+                },
+                error => {
+                    this.eventsSubject.next(
+                        new NgxMAuthOidcErrorEvent('token_error', error)
+                    );
+                    reject(error);
+                }
+            );
+        });
+    }
+
+    public fetchTokenUsingPasswordFlow(
+        userName: string,
+        password: string,
+        headers: HttpHeaders = new HttpHeaders()): Promise<object> {
+
+        if (!this.validateUrlForHttps(this.tokenEndpoint)) {
+            throw new Error(
+                'tokenEndpoint must use http, or config value for property requireHttps must allow http'
+            );
+        }
 
         return new Promise((resolve, reject) => {
             let params = new HttpParams({ encoder: new WebHttpUrlEncodingCodec() })
@@ -569,6 +630,11 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
     }
 
     public refreshToken(): Promise<object> {
+        if (!this.validateUrlForHttps(this.tokenEndpoint)) {
+            throw new Error(
+                'tokenEndpoint must use http, or config value for property requireHttps must allow http'
+            );
+        }
 
         return new Promise((resolve, reject) => {
             let params = new HttpParams()
@@ -925,5 +991,83 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
         params: NgxMAuthOidcValidationParams): Promise<any> {
 
         return Promise.resolve(null);
+    }
+
+    private validateUrlForHttps(
+        url: string): boolean {
+
+        if (!url) {
+            return true;
+        }
+
+        const lcUrl = url.toLowerCase();
+
+        if (this.requireHttps === false) {
+            return true;
+        }
+
+        if ((lcUrl.match(/^http:\/\/localhost($|[:\/])/) ||
+            lcUrl.match(/^http:\/\/localhost($|[:\/])/)) &&
+            this.requireHttps === 'remoteOnly') {
+
+                return true;
+        }
+
+        return lcUrl.startsWith('https://');
+    }
+
+    private validateDocument(
+        document: NgxMAuthOidcDocument
+    ): boolean {
+
+        let errors: string[];
+
+        errors = this.validateUrlFromDocument(document.authorization_endpoint);
+        if (errors.length > 0) {
+            return false;
+        }
+
+        errors = this.validateUrlFromDocument(document.end_session_endpoint);
+        if (errors.length > 0) {
+            return false;
+        }
+
+        errors = this.validateUrlFromDocument(document.token_endpoint);
+        if (errors.length > 0) {
+            return false;
+        }
+
+        errors = this.validateUrlFromDocument(document.userinfo_endpoint);
+        if (errors.length > 0) {
+            return false;
+        }
+
+        errors = this.validateUrlFromDocument(document.jwks_uri);
+        if (errors.length > 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private validateUrlFromDocument(
+        url: string): string[] {
+        
+        const errors: string[] = [];
+
+        if (!this.validateUrlForHttps(url)) {
+            errors.push(
+                'https for all urls required. Also for urls received by discovery.'
+            );
+        }
+
+        // if (!this.validateUrlAgainstIssuer(url)) {
+        //     errors.push(
+        //         'Every url in discovery document has to start with the issuer url.' +
+        //         'Also see property strictDiscoveryDocumentValidation.'
+        //     );
+        // }
+
+        return errors;
     }
 }
