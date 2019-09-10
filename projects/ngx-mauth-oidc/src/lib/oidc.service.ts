@@ -2,19 +2,19 @@ import { Injectable, Optional, NgZone } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 
 // ANGULAR 6, 7
-// import { Subject, Observable, Subscription, of, race } from 'rxjs';
-// import { filter, take, delay, first, tap, map } from 'rxjs/operators';
+import { Subject, Observable, Subscription, of, race } from 'rxjs';
+import { filter, take, delay, first, tap, map } from 'rxjs/operators';
 
 // import { Observable } from 'rxjs/Observable';
 // import { Subject } from 'rxjs/Subject';
 // import { Subscription } from 'rxjs/Subscription';
 
 // IONIC 3 ANGULAR 5
-import { Observable, Subject, Subscription } from 'rxjs/Rx';
+// import { Observable, Subject, Subscription } from 'rxjs/Rx';
 
-import 'rxjs/add/observable/of';
-import 'rxjs/add/operator/delay';
-import 'rxjs/add/operator/filter';
+// import 'rxjs/add/observable/of';
+// import 'rxjs/add/operator/delay';
+// import 'rxjs/add/operator/filter';
 
 import { NgxMAuthOidcConfig } from './oidc-config';
 import { NgxMAuthOidcStorage,
@@ -105,9 +105,9 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
         }
 
         // IONIC 3
-        this.events.filter(e => e.type === 'token_received').subscribe(() => {
+        // this.events.filter(e => e.type === 'token_received').subscribe(() => {
         // ANGULAR 6, 7
-        // this.events.pipe(filter(e => e.type === 'token_received')).subscribe(() => {
+        this.events.pipe(filter(e => e.type === 'token_received')).subscribe(() => {
             this.clearAccessTokenTimer();
             this.clearIdTokenTimer();
             this.setupExpirationTimers();
@@ -134,24 +134,24 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
         const timeout = this.calcTimeout(storedAt, expiration);
 
         // IONIC 3 ANGULAR 5 <=
-        this.accessTokenTimeoutSubscription =
-            Observable
-                .of(new NgxMAuthOidcInfoEvent('token_expires', 'access_token'))
-                .delay(timeout)
-                .subscribe(e => this.eventsSubject.next(e));
+        // this.accessTokenTimeoutSubscription =
+        //     Observable
+        //         .of(new NgxMAuthOidcInfoEvent('token_expires', 'access_token'))
+        //         .delay(timeout)
+        //         .subscribe(e => this.eventsSubject.next(e));
 
         // ANGULAR 6 >=
-        // this.ngZone.runOutsideAngular(() => {
-        //     this.accessTokenTimeoutSubscription = of(
-        //         new NgxMAuthOidcInfoEvent('token_expires', 'access_token')
-        //     )
-        //         .pipe(delay(timeout))
-        //         .subscribe(e => {
-        //             this.ngZone.run(() => {
-        //                 this.eventsSubject.next(e);
-        //             });
-        //         });
-        // });
+        this.ngZone.runOutsideAngular(() => {
+            this.accessTokenTimeoutSubscription = of(
+                new NgxMAuthOidcInfoEvent('token_expires', 'access_token')
+            )
+                .pipe(delay(timeout))
+                .subscribe(e => {
+                    this.ngZone.run(() => {
+                        this.eventsSubject.next(e);
+                    });
+                });
+        });
     }
 
     private setupIdTokenTimer(): void { }
