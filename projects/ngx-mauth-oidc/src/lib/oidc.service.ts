@@ -2,19 +2,19 @@ import { Injectable, Optional, NgZone } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 
 // ANGULAR 6, 7
-import { Subject, Observable, Subscription, of, race } from 'rxjs';
-import { filter, take, delay, first, tap, map } from 'rxjs/operators';
+// import { Subject, Observable, Subscription, of, race } from 'rxjs';
+// import { filter, take, delay, first, tap, map } from 'rxjs/operators';
 
 // import { Observable } from 'rxjs/Observable';
 // import { Subject } from 'rxjs/Subject';
 // import { Subscription } from 'rxjs/Subscription';
 
 // IONIC 3 ANGULAR 5
-// import { Observable, Subject, Subscription } from 'rxjs/Rx';
+import { Observable, Subject, Subscription } from 'rxjs/Rx';
 
-// import 'rxjs/add/observable/of';
-// import 'rxjs/add/operator/delay';
-// import 'rxjs/add/operator/filter';
+import 'rxjs/add/observable/of';
+import 'rxjs/add/operator/delay';
+import 'rxjs/add/operator/filter';
 
 import { NgxMAuthOidcConfig } from './oidc-config';
 import { NgxMAuthOidcStorage,
@@ -105,9 +105,9 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
         }
 
         // IONIC 3
-        // this.events.filter(e => e.type === 'token_received').subscribe(() => {
+        this.events.filter(e => e.type === 'token_received').subscribe(() => {
         // ANGULAR 6, 7
-        this.events.pipe(filter(e => e.type === 'token_received')).subscribe(() => {
+        // this.events.pipe(filter(e => e.type === 'token_received')).subscribe(() => {
             this.clearAccessTokenTimer();
             this.clearIdTokenTimer();
             this.setupExpirationTimers();
@@ -134,24 +134,24 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
         const timeout = this.calcTimeout(storedAt, expiration);
 
         // IONIC 3 ANGULAR 5 <=
-        // this.accessTokenTimeoutSubscription =
-        //     Observable
-        //         .of(new NgxMAuthOidcInfoEvent('token_expires', 'access_token'))
-        //         .delay(timeout)
-        //         .subscribe(e => this.eventsSubject.next(e));
+        this.accessTokenTimeoutSubscription =
+            Observable
+                .of(new NgxMAuthOidcInfoEvent('token_expires', 'access_token'))
+                .delay(timeout)
+                .subscribe(e => this.eventsSubject.next(e));
 
         // ANGULAR 6 >=
-        this.ngZone.runOutsideAngular(() => {
-            this.accessTokenTimeoutSubscription = of(
-                new NgxMAuthOidcInfoEvent('token_expires', 'access_token')
-            )
-                .pipe(delay(timeout))
-                .subscribe(e => {
-                    this.ngZone.run(() => {
-                        this.eventsSubject.next(e);
-                    });
-                });
-        });
+        // this.ngZone.runOutsideAngular(() => {
+        //     this.accessTokenTimeoutSubscription = of(
+        //         new NgxMAuthOidcInfoEvent('token_expires', 'access_token')
+        //     )
+        //         .pipe(delay(timeout))
+        //         .subscribe(e => {
+        //             this.ngZone.run(() => {
+        //                 this.eventsSubject.next(e);
+        //             });
+        //         });
+        // });
     }
 
     private setupIdTokenTimer(): void { }
@@ -533,6 +533,76 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
                 error => {
                     this.eventsSubject.next(
                         new NgxMAuthOidcErrorEvent('user_profile_load_error', error)
+                    );
+                    reject(error);
+                }
+            );
+        });
+    }
+
+    public fetchTokenUsingFirebaseFlow(
+        idToken: string,
+        headers: HttpHeaders = new HttpHeaders()): Promise<object> {
+
+        if (!this.validateUrlForHttps(this.tokenEndpoint)) {
+            throw new Error(
+                'tokenEndpoint must use http, or config value for property requireHttps must allow http'
+            );
+        }
+
+        const tokenParts = idToken.split('.');
+        const headerBase64 = this.helperService.padBase64(tokenParts[0]);
+        const headerJson = b64DecodeUnicode(headerBase64);
+        const header = JSON.parse(headerJson);
+        const claimsBase64 = this.helperService.padBase64(tokenParts[1]);
+        const claimsJson = b64DecodeUnicode(claimsBase64);
+        const claims = JSON.parse(claimsJson);
+        const savedNonce = this.storage.getItem('nonce');
+
+        const now = Date.now();
+        const issuedAtMSec = claims.iat * 1000;
+        const expiresAtMSec = claims.exp * 1000;
+        const tenMinutesInMsec = 1000 * 60 * 10;
+        if (issuedAtMSec - tenMinutesInMsec >= now || expiresAtMSec + tenMinutesInMsec <= now) {
+            throw new Error(
+                'firebase token has expired'
+            );
+        }
+
+        // pobranie nazwy użytkownika z idToken
+        const username = !isNullOrUndefined(claims.email) ? claims.email : claims.name;
+        const password = !isNullOrUndefined(claims.email) ? claims.email : claims.name;
+
+        return new Promise((resolve, reject) => {
+
+            let params = new HttpParams({ encoder: new WebHttpUrlEncodingCodec() })
+                .set('grant_type', 'password')
+                .set('scope', this.scope)
+                .set('username', username)
+                .set('password', password)
+                .set('provider', 'Firebase');
+
+            params = params.set('client_id', this.clientId);
+
+            if (this.dummyClientSecret) {
+                params = params.set('client_secret', this.dummyClientSecret);
+            }
+
+            headers = headers.set(
+                'Content-Type', 'application/x-www-form-urlencoded'
+            );
+
+            this.http.post<NgxMAuthOidcTokenResponse>(this.tokenEndpoint, params, { headers }).subscribe(
+                token => {
+                    this.storeAccessTokenResponse(token.access_token, token.refresh_token, token.expires_in, token.scope);
+                    this.eventsSubject.next(
+                        new NgxMAuthOidcSuccessEvent('token_received')
+                    );
+                    resolve(token);
+                },
+                error => {
+                    this.eventsSubject.next(
+                        new NgxMAuthOidcErrorEvent('token_error', error)
                     );
                     reject(error);
                 }
