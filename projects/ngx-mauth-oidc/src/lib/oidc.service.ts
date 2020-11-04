@@ -574,16 +574,17 @@ export class NgxMAuthOidcService extends NgxMAuthOidcConfig {
         }
 
         // pobranie nazwy użytkownika z idToken
-        const username = !isNullOrUndefined(claims.email) ? claims.email : claims.name;
-        const password = !isNullOrUndefined(claims.email) ? claims.email : claims.name;
+        // const username = !isNullOrUndefined(claims.email) ? claims.email : claims.name;
+        // const password = !isNullOrUndefined(claims.email) ? claims.email : claims.name;
 
         return new Promise((resolve, reject) => {
 
             let params = new HttpParams({ encoder: new WebHttpUrlEncodingCodec() })
                 .set('grant_type', 'password')
                 .set('scope', this.scope)
-                .set('username', username)
-                .set('password', password)
+                .set('username', 'firebase')
+                .set('password', 'firebase')
+                .set('idToken', idToken)
                 .set('provider', 'Firebase');
 
             params = params.set('client_id', this.clientId);
